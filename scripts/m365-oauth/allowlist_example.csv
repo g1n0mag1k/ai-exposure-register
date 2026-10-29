@@ -1,0 +1,4 @@
+client_id,domain,notes
+,login.microsoftonline.com,Microsoft's own first-party services are excluded automatically unless --include-first-party is passed
+,zoom.us,Example only - replace with a real appId or domain fragment
+,dragonmedical.nuance.com,Example client_id placeholder - replace with real values from ai-tool-compliance-db export
