@@ -1,0 +1,4 @@
+client_id,domain,notes
+,workspace.google.com,"Google's own first-party services never need an allowlist entry, excluded automatically by Directory API scope"
+,microsoft.com,Example only - not actually relevant to Google Workspace OAuth grants
+,dragonmedical.nuance.com,Example client_id placeholder - replace with real values from ai-tool-compliance-db export

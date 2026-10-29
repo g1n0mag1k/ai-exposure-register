@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Riverside Family Practice — AI Data Exposure Register</title>
+<style>
+  :root {
+    --teal: #0e5c56; --teal-light: #13786f; --accent: #0e5c56; --accent-light: #e5f3f1;
+    --ink: #1c242e; --muted: #5b6672; --border: #d9e0e2; --bg-soft: #f5f9f8;
+    --yes: #1b7a43; --yes-bg: #e5f5ea; --no: #b23b2e; --no-bg: #fbeae7;
+    --partial-bg: #fbf1de; --partial: #a4700a;
+    --approved: #1b7a43; --approved-bg: #e5f5ea;
+    --restricted: #a4700a; --restricted-bg: #fbf1de;
+    --pending: #b2650e; --pending-bg: #fdebd8;
+    --unapproved: #b23b2e; --unapproved-bg: #fbeae7;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif; color: var(--ink); margin: 0; background: #fff; font-size: 13.5px; line-height: 1.5; }
+  .page { max-width: 1000px; margin: 0 auto; padding: 40px 48px 64px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid var(--teal); padding-bottom: 18px; margin-bottom: 28px; }
+  .masthead h1 { font-size: 22px; margin: 0 0 4px; color: var(--teal); letter-spacing: -0.2px; }
+  .masthead .sub { color: var(--muted); font-size: 13px; }
+  .masthead .meta { text-align: right; font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .masthead .meta strong { color: var(--ink); }
+  .doc-tag { display: inline-block; background: var(--teal); color: #fff; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; padding: 3px 9px; border-radius: 3px; text-transform: uppercase; margin-bottom: 8px; }
+
+  .summary { background: var(--bg-soft); border: 1px solid var(--border); border-left: 5px solid var(--teal); border-radius: 6px; padding: 20px 26px; margin-bottom: 30px; page-break-inside: avoid; }
+  .summary h2 { margin: 0 0 12px; font-size: 16px; color: var(--teal); }
+  .summary p { margin: 6px 0; font-size: 12.8px; }
+  .stat-row { display: flex; gap: 14px; margin: 14px 0 10px; flex-wrap: wrap; }
+  .stat-box { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 10px 16px; min-width: 112px; text-align: center; }
+  .stat-box .num { font-size: 22px; font-weight: 700; color: var(--teal); line-height: 1.1; }
+  .stat-box.alert .num { color: var(--unapproved); }
+  .stat-box .lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+  h2.section-title { font-size: 16px; color: var(--teal); border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 40px 0 16px; }
+  p.lead { color: var(--muted); font-size: 12.5px; margin-bottom: 16px; }
+
+  table.inv-table, table.matrix-table, table.phase-table { width: 100%; border-collapse: collapse; font-size: 11.8px; }
+  table.inv-table th, table.matrix-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; background: var(--teal); padding: 8px; }
+  table.inv-table td, table.matrix-table td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.inv-table tr:nth-child(even) td, table.matrix-table tr:nth-child(even) td { background: #fafcfb; }
+  .tool-name { font-weight: 600; }
+  .tool-vendor { font-weight: 400; color: var(--muted); font-size: 10.5px; }
+  .center { text-align: center; }
+  .risk-note { color: var(--muted); font-size: 11.3px; width: 30%; }
+
+  .status-pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
+  .st-approved { background: var(--approved-bg); color: var(--approved); }
+  .st-restricted { background: var(--restricted-bg); color: var(--restricted); }
+  .st-pending { background: var(--pending-bg); color: var(--pending); }
+  .st-unapproved { background: var(--unapproved-bg); color: var(--unapproved); }
+
+  .yn-pill { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 9px; min-width: 20px; }
+  .yn-yes { background: var(--yes-bg); color: var(--yes); }
+  .yn-no { background: var(--no-bg); color: var(--no); }
+  .yn-partial { background: var(--partial-bg); color: var(--partial); }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 10px 0 18px; font-size: 11px; color: var(--muted); }
+  .legend span.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+  /* AUP */
+  .aup { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 6px; padding: 24px 30px; font-size: 12.5px; }
+  .aup h3 { color: var(--teal); font-size: 14px; margin: 20px 0 8px; }
+  .aup h3:first-child { margin-top: 0; }
+  .aup p { margin: 6px 0; }
+  .aup ul { margin: 6px 0; padding-left: 20px; }
+  .aup li { margin-bottom: 4px; }
+  .ph { background: #fff3cd; color: #7a5c00; padding: 0 4px; border-radius: 3px; font-weight: 600; font-size: 11.5px; }
+  .sig-block { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .sig-line { border-top: 1px solid var(--ink); margin-top: 32px; padding-top: 4px; font-size: 11px; color: var(--muted); }
+
+  /* Remediation phases */
+  .phase-card { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 18px; overflow: hidden; page-break-inside: avoid; }
+  .phase-head { background: var(--accent-light); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .phase-head h3 { margin: 0; font-size: 13.5px; color: var(--teal); }
+  .phase-window { font-size: 11px; color: var(--muted); }
+  table.phase-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 6px 12px; border-bottom: 1px solid var(--border); }
+  table.phase-table td { padding: 7px 12px; border-bottom: 1px solid #eef2f1; vertical-align: top; }
+  .act-pill { font-weight: 700; color: var(--teal); white-space: nowrap; }
+
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
+  .sample-watermark { position: fixed; top: 46%; left: 50%; transform: translate(-50%,-50%) rotate(-28deg); font-size: 86px; font-weight: 800; color: rgba(14,92,86,0.06); z-index: -1; letter-spacing: 0.05em; pointer-events: none; white-space: nowrap; }
+
+  @media print {
+    .page { padding: 0.3in 0.5in; }
+    .phase-card { break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+  @page { margin: 0.5in; size: letter; }
+</style>
+</head>
+<body>
+<div class="sample-watermark">SAMPLE — FICTIONAL DATA</div>
+<div class="page">
+
+  <div class="masthead">
+    <div>
+      <div class="doc-tag">AI Data Exposure Register</div>
+      <h1>Riverside Family Practice</h1>
+      <div class="sub">AI Tool Inventory, BAA/DPA Matrix, Acceptable Use Policy &amp; 90-Day Remediation Plan</div>
+    </div>
+    <div class="meta">
+      <div><strong>Practice profile:</strong> 12-physician family medicine group, Tennessee</div>
+      <div><strong>Prepared:</strong> October 28, 2026</div>
+      <div><strong>Method:</strong> Staff survey (17 respondents) + Google Workspace &amp; M365 admin console OAuth review</div>
+      <div><strong>Document support:</strong> Sui-Generis LLC &mdash; AI Data Exposure Register</div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <h2>Executive Summary</h2>
+    <p>A survey of Riverside's 12 physicians and 5 administrative staff, cross-referenced against OAuth-connected
+    third-party applications in the practice's Google Workspace and Microsoft 365 admin consoles, identified
+    <b>14 distinct AI tools</b> in active use. Three are approved, tenant-governed tools with executed BAAs and DPAs.
+    Two are in use under a restriction (no PHI permitted). The remaining nine are either unapproved consumer-tier
+    tools in active use by clinical or administrative staff, or approved vendors being used at the wrong tier
+    without the required agreements in place.</p>
+    <p>Two tools &mdash; <b>Otter.ai</b> and <b>Fireflies.ai</b> &mdash; are currently being used to record and transcribe
+    live patient conversations and clinical case discussions without a Business Associate Agreement. <b>Zoom AI
+    Companion</b> is auto-generating telehealth visit summaries under the same condition. These three represent the
+    highest-priority items in the remediation plan below.</p>
+    <div class="stat-row">
+      <div class="stat-box"><div class="num">14</div><div class="lbl">AI tools identified</div></div>
+      <div class="stat-box"><div class="num">3</div><div class="lbl">Approved</div></div>
+      <div class="stat-box"><div class="num">2</div><div class="lbl">Restricted (non-PHI)</div></div>
+      <div class="stat-box alert"><div class="num">2</div><div class="lbl">Pending / wrong tier</div></div>
+      <div class="stat-box alert"><div class="num">7</div><div class="lbl">Unapproved</div></div>
+    </div>
+    <p style="color:var(--muted); font-size:11.5px;">This register documents current-state AI tool usage and associated data-handling terms as disclosed by vendor documentation and staff reporting as of the date above. It is a technical work product; it does not constitute a legal determination of HIPAA compliance or a legal opinion, and should be reviewed by the practice's legal counsel before reliance.</p>
+  </div>
+
+  <h2 class="section-title">1. AI Tool Inventory</h2>
+  <p class="lead">Identified via staff survey (17 respondents, administered October 28, 2026) and OAuth-connected app review in Google Workspace and Microsoft 365 admin consoles.</p>
+  <table class="inv-table">
+    <thead><tr><th style="width:18%">Tool</th><th style="width:20%">Tier in Use</th><th style="width:12%">Users</th><th style="width:32%">Primary Use at Riverside</th><th style="width:18%">Status</th></tr></thead>
+    <tbody>
+        <tr>
+          <td class="tool-name">ChatGPT (Free / Plus)<div class="tool-vendor">OpenAI</div></td>
+          <td>Consumer (Free/Plus)</td>
+          <td class="center">6 of 12 providers</td>
+          <td>Drafting patient instructions, visit summaries, and appeal letters</td>
+          <td><span class="status-pill st-unapproved">Unapproved — Shadow IT</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">ChatGPT Team<div class="tool-vendor">OpenAI</div></td>
+          <td>Team</td>
+          <td class="center">Office manager</td>
+          <td>Drafting billing correspondence referencing patient accounts</td>
+          <td><span class="status-pill st-unapproved">Unapproved — Shadow IT</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Microsoft 365 Copilot<div class="tool-vendor">Microsoft</div></td>
+          <td>Microsoft 365 Business Premium (tenant-wide)</td>
+          <td class="center">All front-office staff (5)</td>
+          <td>Drafting scheduling correspondence and internal memos within M365 apps</td>
+          <td><span class="status-pill st-approved">Approved</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Google Gemini (Workspace)<div class="tool-vendor">Google</div></td>
+          <td>Google Workspace Business Standard (tenant-wide)</td>
+          <td class="center">3 administrative staff</td>
+          <td>Drafting patient-facing emails and internal documentation</td>
+          <td><span class="status-pill st-approved">Approved</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Google Gemini (personal app)<div class="tool-vendor">Google</div></td>
+          <td>Consumer (personal Google account)</td>
+          <td class="center">2 providers (personal phones)</td>
+          <td>Ad hoc clinical question look-ups, occasionally pasting case details</td>
+          <td><span class="status-pill st-unapproved">Unapproved — Shadow IT</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Otter.ai<div class="tool-vendor">Otter.ai, Inc.</div></td>
+          <td>Free / Basic</td>
+          <td class="center">2 providers</td>
+          <td>Transcribing patient phone calls and in-office consultations</td>
+          <td><span class="status-pill st-unapproved">Unapproved — Shadow IT</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Grammarly<div class="tool-vendor">Grammarly, Inc.</div></td>
+          <td>Business</td>
+          <td class="center">4 administrative staff</td>
+          <td>Grammar/tone checking on general correspondence</td>
+          <td><span class="status-pill st-restricted">Approved — Non-PHI Only</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Claude.ai (Free)<div class="tool-vendor">Anthropic</div></td>
+          <td>Consumer (Free)</td>
+          <td class="center">Billing coordinator</td>
+          <td>Drafting insurance appeal letters referencing patient diagnoses</td>
+          <td><span class="status-pill st-unapproved">Unapproved — Shadow IT</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Perplexity<div class="tool-vendor">Perplexity AI, Inc.</div></td>
+          <td>Free</td>
+          <td class="center">1 provider</td>
+          <td>General medical reference look-ups</td>
+          <td><span class="status-pill st-unapproved">Unapproved — Shadow IT</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">DeepL<div class="tool-vendor">DeepL SE</div></td>
+          <td>Free</td>
+          <td class="center">Front desk (2 staff)</td>
+          <td>Translating patient instructions and intake forms into Spanish</td>
+          <td><span class="status-pill st-pending">Pending / Wrong Tier</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Fireflies.ai<div class="tool-vendor">Fireflies.ai, Inc.</div></td>
+          <td>Free</td>
+          <td class="center">3 providers (clinical staff meetings)</td>
+          <td>Transcribing weekly provider huddles that include patient case discussion</td>
+          <td><span class="status-pill st-unapproved">Unapproved — Shadow IT</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Dragon Medical One<div class="tool-vendor">Nuance / Microsoft</div></td>
+          <td>Enterprise (cloud, healthcare-specific)</td>
+          <td class="center">All 12 physicians</td>
+          <td>Clinical dictation directly into the EHR</td>
+          <td><span class="status-pill st-approved">Approved</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Canva<div class="tool-vendor">Canva Pty Ltd</div></td>
+          <td>Free</td>
+          <td class="center">Office manager</td>
+          <td>Designing patient education handouts and waiting-room signage</td>
+          <td><span class="status-pill st-restricted">Approved — Non-PHI Only</span></td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Zoom AI Companion<div class="tool-vendor">Zoom Communications, Inc.</div></td>
+          <td>Zoom Business (AI Companion enabled tenant-wide)</td>
+          <td class="center">6 providers (telehealth visits)</td>
+          <td>Auto-generating visit summaries and transcripts during telehealth appointments</td>
+          <td><span class="status-pill st-pending">Pending / Wrong Tier</span></td>
+        </tr></tbody>
+  </table>
+
+  <h2 class="section-title">2. BAA / DPA Matrix</h2>
+  <p class="lead">Per-tool data-handling terms. "Trains on Input" reflects the vendor's policy for the tier actually in use at Riverside, which may differ from the vendor's enterprise-tier policy.</p>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--yes)"></span>Yes</span>
+    <span><span class="dot" style="background:var(--no)"></span>No</span>
+    <span><span class="dot" style="background:var(--partial)"></span>Partial / conditional</span>
+    <span>* Zoom offers a BAA addendum covering AI Companion for qualifying healthcare accounts; Riverside has not yet executed it.</span>
+  </div>
+  <table class="matrix-table">
+    <thead><tr><th style="width:17%">Tool</th><th style="width:22%">Vendor Tier</th><th style="width:9%">Trains on Input</th><th style="width:9%">BAA Available</th><th style="width:9%">DPA in Place</th><th style="width:9%">Approved for PHI</th><th>Risk Note</th></tr></thead>
+    <tbody>
+        <tr>
+          <td class="tool-name">ChatGPT (Free / Plus)</td>
+          <td>Consumer (Free/Plus)</td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">High — consumer tier trains on input by default and offers no BAA; PHI has been entered in session prompts.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">ChatGPT Team</td>
+          <td>Team</td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">High — training is off by default on Team, but OpenAI does not offer a signable BAA on this tier; no DPA executed.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Microsoft 365 Copilot</td>
+          <td>Microsoft 365 Business Premium (tenant-wide)</td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="risk-note">Low — covered under the practice's executed Microsoft BAA and Online Services Terms; data stays within tenant boundary.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Google Gemini (Workspace)</td>
+          <td>Google Workspace Business Standard (tenant-wide)</td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="risk-note">Low — Workspace core service; BAA and DPA executed with Google; content excluded from model training per Workspace terms.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Google Gemini (personal app)</td>
+          <td>Consumer (personal Google account)</td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">High — personal consumer account, outside tenant BAA coverage; used on personal devices outside MDM.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Otter.ai</td>
+          <td>Free / Basic</td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">High — live transcription of patient conversations with no BAA; free tier retains and may use audio/text for training.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Grammarly</td>
+          <td>Business</td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">Medium — Business tier excludes content from training and offers a DPA, but Grammarly does not offer a BAA; must remain PHI-free.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Claude.ai (Free)</td>
+          <td>Consumer (Free)</td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">High — free consumer tier, no BAA; PHI-containing appeal drafts have been entered in prompts.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Perplexity</td>
+          <td>Free</td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">Medium — no PHI confirmed entered to date, but tool is unapproved and unmonitored; free tier trains on input.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">DeepL</td>
+          <td>Free</td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">Medium-High — free tier retains/trains on submitted text, which includes patient names and clinical instructions; a Pro/API tier with a DPA is available and has not been adopted.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Fireflies.ai</td>
+          <td>Free</td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">High — automatic meeting transcription and storage of clinical case discussions with no BAA.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Dragon Medical One</td>
+          <td>Enterprise (cloud, healthcare-specific)</td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="risk-note">Low — purpose-built healthcare dictation platform; BAA executed with Nuance/Microsoft; long-standing approved tool.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Canva</td>
+          <td>Free</td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-partial">Restricted</span></td>
+          <td class="risk-note">Low, conditional — approved for non-PHI design work only; no BAA exists, so no patient identifiers may ever be entered.</td>
+        </tr>
+
+        <tr>
+          <td class="tool-name">Zoom AI Companion</td>
+          <td>Zoom Business (AI Companion enabled tenant-wide)</td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y*</span></td>
+          <td class="center"><span class="yn-pill yn-yes">Y</span></td>
+          <td class="center"><span class="yn-pill yn-no">N</span></td>
+          <td class="risk-note">High — Zoom offers a BAA covering AI Companion for qualifying healthcare accounts, but the practice has not executed the healthcare BAA addendum; feature is actively summarizing PHI-containing visits today.</td>
+        </tr></tbody>
+  </table>
+
+  <h2 class="section-title">3. Acceptable Use Policy — Template</h2>
+  <p class="lead">Drafted for adoption by Riverside leadership; placeholders in <span class="ph">highlight</span> require practice-specific input before distribution. Final policy should be reviewed by the practice's legal counsel.</p>
+  <div class="aup">
+    <h3>Artificial Intelligence Acceptable Use Policy</h3>
+    <p><b>Practice:</b> <span class="ph">[PRACTICE LEGAL NAME]</span> &nbsp; <b>Effective date:</b> <span class="ph">[EFFECTIVE DATE]</span> &nbsp; <b>Policy owner:</b> <span class="ph">[NAME / TITLE, e.g., Practice Manager]</span> &nbsp; <b>Review cycle:</b> <span class="ph">[ANNUALLY / SEMI-ANNUALLY]</span>, next review <span class="ph">[REVIEW DATE]</span></p>
+
+    <h3>1. Purpose</h3>
+    <p>This policy governs the use of artificial intelligence (AI) tools, including generative AI chatbots, transcription services, and AI-enabled features within approved software, by all employees, contractors, and affiliated providers of <span class="ph">[PRACTICE NAME]</span>. Its purpose is to prevent unauthorized disclosure of protected health information (PHI) and to establish a clear, auditable process for evaluating and approving new AI tools.</p>
+
+    <h3>2. Approved Tools</h3>
+    <p>Only tools listed on the current Approved AI Tool List may be used for any task involving patient information. As of <span class="ph">[EFFECTIVE DATE]</span>, the Approved AI Tool List consists of:</p>
+    <ul>
+      <li><span class="ph">[Microsoft 365 Copilot — tenant license, scheduling and internal correspondence]</span></li>
+      <li><span class="ph">[Google Gemini (Workspace) — tenant license, patient-facing email drafting]</span></li>
+      <li><span class="ph">[Dragon Medical One — clinical dictation into the EHR]</span></li>
+    </ul>
+    <p>Tools marked "Restricted" may be used only for the specific non-PHI purpose documented in the current AI Data Exposure Register (e.g., <span class="ph">[Canva for patient-education design work, with no patient identifiers entered]</span>). No other AI tool may be used for any work purpose unless formally approved under Section 4.</p>
+
+    <h3>3. Prohibited Conduct</h3>
+    <ul>
+      <li>Entering any patient name, date of birth, medical record number, diagnosis, treatment detail, photograph, or other PHI into any AI tool not on the Approved AI Tool List.</li>
+      <li>Using a personal (non-practice-issued) account to access any AI tool for a work purpose.</li>
+      <li>Recording or transcribing any patient conversation, visit, or clinical discussion using a tool without an executed BAA.</li>
+      <li>Installing or enabling browser extensions, add-ins, or AI features in approved software without prior written approval.</li>
+    </ul>
+
+    <h3>4. Requesting a New Tool</h3>
+    <p>Employees who wish to use an AI tool not on the Approved AI Tool List must submit a request to <span class="ph">[POLICY OWNER]</span> describing the intended use, the data involved, and the vendor. No tool may be used for PHI-related work until it has a reviewed BAA (where PHI is involved), a signed DPA, and has been added to the Approved AI Tool List in writing.</p>
+
+    <h3>5. Training &amp; Acknowledgment</h3>
+    <p>All employees and providers must complete AI acceptable use training within 30 days of hire and upon any material policy update, and must sign the acknowledgment below.</p>
+
+    <h3>6. Enforcement</h3>
+    <p>Violations of this policy will be addressed under <span class="ph">[PRACTICE NAME]</span>'s standard HR disciplinary process and, where applicable, reported under the practice's HIPAA breach notification procedure.</p>
+
+    <div class="sig-block">
+      <div><div class="sig-line">Employee signature &nbsp;&nbsp; Date: <span class="ph">[DATE]</span></div></div>
+      <div><div class="sig-line">Print name</div></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">4. 90-Day Remediation Plan</h2>
+  <p class="lead">Four two-to-four-week phases from October 28, 2026 to January 26, 2027, ordered by risk. Each item names a specific action (block, restrict, upgrade, replace, or decommission) and an owner-ready deadline.</p>
+  
+    <div class="phase-card">
+      <div class="phase-head">
+        <h3>Phase 1 — Immediate Containment</h3>
+        <div class="phase-window">Oct 28 – November 11, 2026 &middot; due <b>November 11, 2026</b></div>
+      </div>
+      <table class="phase-table">
+        <thead><tr><th style="width:14%">Action</th><th style="width:24%">Tool / Item</th><th>Detail</th></tr></thead>
+        <tbody>
+            <tr>
+              <td class="act-pill">Block</td>
+              <td class="tool-name">ChatGPT (Free/Plus)</td>
+              <td>Block at network/DNS level for office devices; issue written notice to the 6 identified users; no PHI is to be entered into any consumer AI tool effective immediately.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Block</td>
+              <td class="tool-name">Claude.ai (Free)</td>
+              <td>Block access on office devices; billing coordinator redirected to use only Microsoft 365 Copilot for correspondence drafting.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Block</td>
+              <td class="tool-name">Otter.ai</td>
+              <td>Discontinue use for any patient call or visit recording effective immediately; existing recordings/transcripts inventoried for retention review.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Block</td>
+              <td class="tool-name">Fireflies.ai</td>
+              <td>Disable Fireflies bot from provider meeting calendar invites; existing meeting transcripts exported and then deleted from Fireflies per data deletion request.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Block</td>
+              <td class="tool-name">Google Gemini (personal app)</td>
+              <td>Issue written notice to the 2 providers; personal-account AI use for any work purpose prohibited under interim policy pending MDM review.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Issue</td>
+              <td class="tool-name">Interim Acceptable Use Notice</td>
+              <td>Distribute the interim AI Acceptable Use Policy (see template below) to all staff for signature within 5 business days.</td>
+            </tr></tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-head">
+        <h3>Phase 2 — Tier Correction &amp; Vendor Agreements</h3>
+        <div class="phase-window">November 12, 2026 – November 27, 2026 &middot; due <b>November 27, 2026</b></div>
+      </div>
+      <table class="phase-table">
+        <thead><tr><th style="width:14%">Action</th><th style="width:24%">Tool / Item</th><th>Detail</th></tr></thead>
+        <tbody>
+            <tr>
+              <td class="act-pill">Decide &amp; Execute</td>
+              <td class="tool-name">Zoom AI Companion</td>
+              <td>Practice manager to execute Zoom's healthcare BAA addendum covering AI Companion, or disable AI Companion tenant-wide if the addendum is not completed by the deadline.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Decommission / Upgrade</td>
+              <td class="tool-name">ChatGPT Team</td>
+              <td>Either decommission in favor of Microsoft 365 Copilot (already approved and BAA-covered), or evaluate ChatGPT Enterprise with a signed data processing agreement — decision owned by practice manager.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Restrict</td>
+              <td class="tool-name">Canva</td>
+              <td>Publish written restriction: design work only, no patient names, photos, or identifiers of any kind; office manager to confirm no historical PHI exists in existing designs.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Restrict</td>
+              <td class="tool-name">Grammarly</td>
+              <td>Confirm Business-tier training-exclusion setting is active for all 4 seats; publish written restriction prohibiting PHI in any text checked through Grammarly.</td>
+            </tr></tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-head">
+        <h3>Phase 3 — Upgrade &amp; Replace</h3>
+        <div class="phase-window">November 28, 2026 – December 27, 2026 &middot; due <b>December 27, 2026</b></div>
+      </div>
+      <table class="phase-table">
+        <thead><tr><th style="width:14%">Action</th><th style="width:24%">Tool / Item</th><th>Detail</th></tr></thead>
+        <tbody>
+            <tr>
+              <td class="act-pill">Upgrade</td>
+              <td class="tool-name">DeepL</td>
+              <td>Upgrade front desk to DeepL Pro (API/CAT tier) with a signed DPA and training opt-out confirmed; free-tier access removed from office devices.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Replace</td>
+              <td class="tool-name">Perplexity</td>
+              <td>Discontinue informal use; if clinical reference lookup is a recurring need, evaluate a vetted, BAA-eligible clinical reference tool through the practice's EHR vendor.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Train</td>
+              <td class="tool-name">All staff</td>
+              <td>Conduct a mandatory 45-minute AI tool training session covering the approved tool list, the Acceptable Use Policy, and how to request evaluation of a new tool.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Finalize</td>
+              <td class="tool-name">Acceptable Use Policy</td>
+              <td>Collect signed acknowledgment from all 12 physicians and all administrative staff; file signed copies in HR records.</td>
+            </tr></tbody>
+      </table>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-head">
+        <h3>Phase 4 — Verification &amp; Cadence</h3>
+        <div class="phase-window">December 28, 2026 – January 26, 2027 &middot; due <b>January 26, 2027</b></div>
+      </div>
+      <table class="phase-table">
+        <thead><tr><th style="width:14%">Action</th><th style="width:24%">Tool / Item</th><th>Detail</th></tr></thead>
+        <tbody>
+            <tr>
+              <td class="act-pill">Audit</td>
+              <td class="tool-name">Google Workspace / M365 admin consoles</td>
+              <td>Re-pull OAuth-connected third-party app list from both admin consoles and reconcile against this register to confirm no new unapproved tools have appeared.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Re-survey</td>
+              <td class="tool-name">All staff</td>
+              <td>Issue a short follow-up survey confirming discontinued use of blocked tools and capturing any newly adopted tools.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Sign off</td>
+              <td class="tool-name">Practice manager</td>
+              <td>Practice manager reviews and signs off on remediation completion for each item in this plan; exceptions documented with a revised target date.</td>
+            </tr>
+            <tr>
+              <td class="act-pill">Schedule</td>
+              <td class="tool-name">Annual re-inventory</td>
+              <td>Calendar the next full AI Data Exposure Register re-inventory for October 28, 2027 (annual cadence).</td>
+            </tr></tbody>
+      </table>
+    </div>
+
+  <div class="footer">
+    <div>Riverside Family Practice &mdash; AI Data Exposure Register &mdash; Fictional sample for demonstration purposes only.</div>
+    <div>Prepared by Sui-Generis LLC &mdash; Knoxville, TN</div>
+  </div>
+
+</div>
+</body>
+</html>
