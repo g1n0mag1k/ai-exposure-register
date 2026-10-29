@@ -16,4 +16,6 @@ Productized by Sui-Generis LLC. See [`ai-tool-compliance-db`](https://github.com
 2. Cross-reference that summary against [`ai-tool-compliance-db`](https://github.com/g1n0mag1k/ai-tool-compliance-db)'s `cross_reference.py` → a BAA/DPA matrix CSV.
 3. Merge the matrix into the register template (currently hand-assembled per the `samples/` example; a standalone Jinja-style template is a planned follow-up).
 
-Still open: a standalone reusable HTML template for the register (currently the sample's generator script is the de facto template), and the Netlify client intake form.
+Still open: a standalone reusable HTML template for the register (currently the sample's generator script is the de facto template).
+
+Client intake form (covers both the AI Data Exposure Register and Deal Unlocker) lives in its own repo: [`sui-generis-intake`](https://github.com/g1n0mag1k/sui-generis-intake).
