@@ -5,7 +5,7 @@ m365_oauth_enum.py
 ===================
 
 AI Data Exposure Register — Microsoft 365 / Entra ID OAuth Enumeration Script
-Sui-Generis LLC
+Sui-Generis
 
 M365 counterpart to gworkspace_oauth_enum.py. Enumerates every third-party
 application that has been granted OAuth access into a Microsoft 365 tenant

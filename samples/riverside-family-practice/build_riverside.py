@@ -288,7 +288,7 @@ html = f"""<!DOCTYPE html>
       <div><strong>Practice profile:</strong> 12-physician family medicine group, Tennessee</div>
       <div><strong>Prepared:</strong> {TODAY.strftime('%B %-d, %Y')}</div>
       <div><strong>Method:</strong> Staff survey (17 respondents) + Google Workspace &amp; M365 admin console OAuth review</div>
-      <div><strong>Document support:</strong> Sui-Generis LLC &mdash; AI Data Exposure Register</div>
+      <div><strong>Document support:</strong> Sui-Generis &mdash; AI Data Exposure Register</div>
     </div>
   </div>
 
@@ -381,7 +381,7 @@ html = f"""<!DOCTYPE html>
 
   <div class="footer">
     <div>Riverside Family Practice &mdash; AI Data Exposure Register &mdash; Fictional sample for demonstration purposes only.</div>
-    <div>Prepared by Sui-Generis LLC &mdash; Knoxville, TN</div>
+    <div>Prepared by Sui-Generis &mdash; Knoxville, TN</div>
   </div>
 
 </div>

@@ -5,7 +5,7 @@ gworkspace_oauth_enum.py
 =========================
 
 AI Data Exposure Register — Google Workspace OAuth Enumeration Script
-Sui-Generis LLC
+Sui-Generis
 
 Enumerates every third-party OAuth application that any user in a Google
 Workspace domain has granted access to (the "Sign in with Google" / "Connect
