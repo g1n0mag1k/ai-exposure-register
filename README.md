@@ -3,7 +3,9 @@
 AI Data Exposure Register for HIPAA-covered entities and professional firms — tool inventory, BAA/DPA matrix, acceptable-use policy template, and 90-day remediation plan.
 
 Productized by Sui-Generis. See [`PRICING.md`](PRICING.md) for the full
-tier/add-on structure, and [`ai-tool-compliance-db`](https://github.com/g1n0mag1k/ai-tool-compliance-db) for the public reference database this toolchain cross-references against.
+tier/add-on structure, [`legal/SERVICES_AGREEMENT.md`](legal/SERVICES_AGREEMENT.md)
+and [`legal/NDA.md`](legal/NDA.md) for the contract templates every
+engagement should run on, and [`ai-tool-compliance-db`](https://github.com/g1n0mag1k/ai-tool-compliance-db) for the public reference database this toolchain cross-references against.
 
 ## Layout
 
